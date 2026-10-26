@@ -4,36 +4,51 @@
 
 # GameCube Controller Cursor for the Wii System Menu
 
-A [Priiloader](https://github.com/DacoTaco/priiloader) hack that lets a **GameCube controller** drive the Wii Menu pointer, with **no Wii Remote** connected. The control stick moves the cursor, and the GameCube buttons act as Wii Remote buttons, including the HOME Menu.
+A [Priiloader](https://github.com/DacoTaco/priiloader) hack that lets a **GameCube controller** drive the Wii Menu pointer, with **no Wii Remote** connected. The control stick moves the cursor, the D-pad jumps between buttons, and the GameCube buttons act as Wii Remote buttons, including the HOME Menu.
 
-Tested on a real Wii and in Dolphin.
+Tested on a real Wii and in Dolphin (see [Needs testing](#needs-testing) for what hasn't been tried on hardware yet).
 
 ## Compatibility
 
 | | |
 |---|---|
-| System Menu | **4.3U (v513)** and **4.3E (v514)** |
+| System Menu | **4.3U (v513)**, **4.3E (v514)** and **4.3J (v512)** |
 | Priiloader | Tested on 0.9.1 and 0.10.0 |
 | Console | Wii (not tested on vWii / Wii U) |
 
-To check your version, open **Wii Settings**: it's shown in the top right corner. It must say **4.3U** or **4.3E**. The hack file has one block per version and Priiloader only lists the one that matches your Wii, so you'll see a single *GameCube Controller Cursor* entry, and other versions can't enable it by accident.
+To check your version, open **Wii Settings**: it's shown in the top right corner. It must say **4.3U**, **4.3E** or **4.3J**. The hack file has one block per version and Priiloader only lists the one that matches your Wii, so you'll see a single *GameCube Controller Cursor* entry, and other versions can't enable it by accident.
 
 ## Controls
 
 | GameCube | Wii Remote |
 |---|---|
 | Control stick | Pointer |
+| D-pad | Jump to the next button in that direction |
 | A | A |
 | B | B |
 | Start | HOME |
-| D-pad | D-pad |
 | L | − |
 | R or Z | + |
 | X | 1 |
 | Y | 2 |
 
+- The cursor starts on the top-left channel. The D-pad works on the channel grid, the bottom bar, channel previews, dialogs, the HOME Menu, Wii Options, Data Management and the Wii Message Board.
+- Wii System Settings is a web page inside the menu. There the D-pad moves the page's own highlight and A selects it; the pointer hides until you move the stick.
 - Works from **any** GameCube port, and you can plug the controller in or out at any time.
 - If a Wii Remote is turned on, the Wii Remote takes over and works normally. The GameCube controller is only used while no remote is connected.
+
+## Needs testing
+
+These have only been tested in Dolphin, not on a real console. Reports from 4.3E and 4.3J owners are welcome:
+
+- **4.3E (v514):** the D-pad. The stick and buttons were already supported.
+- **4.3J (v512):** the whole hack. Its addresses were mapped from 4.3U with `tools/port.py`, and the same walkthrough as 4.3U was run in Dolphin: health screen, channel grid, Wii Options, Wii System Settings and the HOME Menu.
+
+Known rough edges on every version:
+
+- Some buttons take two D-pad presses to cross (Mail, the channel preview's *Wii Menu* button), because they're made of several hit areas.
+- The Wii Message Board's zoom buttons only appear on hover, so the D-pad can't reach them.
+- On the first-time setup's "Press A" page, pressing the D-pad first switches to web-page mode, where A does nothing until you move the stick.
 
 ## Install
 
@@ -78,8 +93,9 @@ The menu already contains Nintendo's GameCube pad library, but it only reads the
 
 - **Probe:** if no Wii Remote is found, the hook reads the GameCube pads (`PADRead`, plus `PADReset` so controllers can be plugged in later). If one is present, it reports "Wii Remote connected".
 - **Read:** the hook fills in the Wii Remote data the menu expects: pointer position (the stick moves a cursor, with a dead zone and acceleration), buttons, press/release events and button repeat.
+- **D-pad:** the menu's GUI asks for each clickable button's rectangle every frame to check the pointer against it. The hook records the center of each one, and a D-pad press moves the cursor onto the closest button in that direction. Screens drawn by the menu's built-in web browser (Wii System Settings) have no such buttons, so there the hook sends the browser arrow keys and "activate" instead.
 
-The code lives in two functions of the menu that are never called. Priiloader writes it there at boot using `offset=` patches. See [docs/TECHNICAL.md](docs/TECHNICAL.md) for the addresses, data layouts and how everything was found.
+The code lives in functions of the menu that are never called. Priiloader writes it there at boot using `offset=` patches. See [docs/TECHNICAL.md](docs/TECHNICAL.md) for the addresses, data layouts and how everything was found.
 
 ## Building from source
 
@@ -92,6 +108,7 @@ The ready-made hack is in `hack/`, so you only need this to change the code or p
    |---|---|---|---|---|
    | 4.3U (v513) | `bin/sysmenu_v513.dol` | `10000098.app` | `00000098.app` | `26116613f624061ba99c8d1a299aaa6efa85670d` |
    | 4.3E (v514) | `bin/sysmenu_v514.dol` | `1000009b.app` | `0000009b.app` | `2ebea6ed22473857ed64b12daa71ae2d1ed61708` |
+   | 4.3J (v512) | `bin/sysmenu_v512.dol` | `10000095.app` | `00000095.app` | `c94c8e671854d56fa2abd4c4c886e6c62a2c7f0e` |
 
    (Priiloader moves the original menu to the `1…` name.)
 3. Build (every supported version, then one .ini with a block for each):
@@ -99,9 +116,9 @@ The ready-made hack is in `hack/`, so you only need this to change the code or p
    python tools/build.py --release
    python tools/mkhack.py hack/gc_cursor_hack.ini
    ```
-   Leave out `--release` for the debug build (disc light + counters). `build.py` and `mkhack.py` don't read the DOLs; the per-version addresses are in `MENUS` in `tools/build.py`.
+   Leave out `--release` for the debug build (disc light, counters, and a TEST input for driving the menu from a debugger). `build.py` and `mkhack.py` don't read the DOLs; the per-version addresses are in `MENUS` in `tools/build.py`.
 
-Tuning values (cursor speed, dead zone, screen limits, button map) are at the top of `tools/build.py`. Testing in Dolphin without Priiloader is described in [docs/TECHNICAL.md](docs/TECHNICAL.md#testing-in-dolphin).
+Tuning values (cursor speed, dead zone, screen limits, button map, D-pad selection) are at the top of `tools/build.py`. Testing in Dolphin without Priiloader is described in [docs/TECHNICAL.md](docs/TECHNICAL.md#testing-in-dolphin).
 
 ## Disclaimer
 

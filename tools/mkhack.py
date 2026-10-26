@@ -20,7 +20,7 @@ from hackini import parse
 BUILD = Path(__file__).resolve().parent.parent / "build"
 OUT = BUILD / "gc_cursor_hack.ini"
 NAME = "GameCube Controller Cursor"   # Priiloader shows at most 39 characters
-RELEASE = "1.1"
+RELEASE = "1.2"
 
 
 def words(b):
@@ -34,12 +34,16 @@ def block(d):
     v = info["menu"]
     patches = [
         ("hook code (dead function)", info["code_addr"], (d / "gc_hook.bin").read_bytes()),
-        ("hook data + gc_probe (dead function)", info["data_addr"], (d / "gc_data.bin").read_bytes()),
-    ] + [(f"bl gc_{k}", s["addr"], struct.pack(">I", s["new"])) for k, s in info["sites"].items()]
+        ("hook data (dead function)", info["data_addr"], (d / "gc_data.bin").read_bytes()),
+    ] + [(f"{k} (dead function)", e["addr"], (d / f"gc_{k}.bin").read_bytes())
+         for k, e in info.get("extra", {}).items()]
+    patches += [(f"bl {s['hook']} ({k} call site)", s["addr"], struct.pack(">I", s["new"]))
+                for k, s in info["sites"].items()]
     build = "DEBUG build (" + ", ".join(info["flags"]) + ")" if info.get("flags") else "release"
     lines = [f"[{NAME}]", f"maxversion={v}", f"minversion={v}", f"amount={len(patches)}",
              f"#v{RELEASE} {build}, System Menu {info['name']} (v{v})",
-             "#Stick moves the pointer, A/B/Start(HOME)/D-pad/L(-)/R+Z(+)/X(1)/Y(2) when no Wii Remote is on"]
+             "#Stick moves the pointer, D-pad jumps between buttons, A/B/Start(HOME)/L(-)/R+Z(+)/X(1)/Y(2)"
+             " when no Wii Remote is on"]
     for desc, addr, data in patches:
         lines += [f"#{desc}", f"offset=0x{addr:08X}", f"patch={words(data)}"]
     return info["flags"], lines

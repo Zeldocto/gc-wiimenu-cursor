@@ -44,6 +44,8 @@ def main(cmd, secs=30.0):
                 raise SystemExit(f"{k}: unexpected word {cur:#010x} at {s['addr']:#x}; wrong menu version?")
         m.write(info["data_addr"], (out / "gc_data.bin").read_bytes())
         m.write(info["code_addr"], (out / "gc_hook.bin").read_bytes())
+        for k, e in info.get("extra", {}).items():
+            m.write(e["addr"], (out / f"gc_{k}.bin").read_bytes())
         for s in sites.values():
             m.write(s["addr"], struct.pack(">I", s["new"]))
     elif cmd == "keep":
@@ -54,6 +56,10 @@ def main(cmd, secs=30.0):
             ev = []
             if m.read(info["code_addr"], len(code)) != code:
                 m.write(info["code_addr"], code); ev.append("code")
+            for k, e in info.get("extra", {}).items():
+                blob = (out / f"gc_{k}.bin").read_bytes()
+                if m.read(e["addr"], len(blob)) != blob:
+                    m.write(e["addr"], blob); ev.append(k)
             if m.read(info["data_addr"] + 0x18, 8) != data[0x18:0x20]:   # MAGIC gone = data wiped
                 m.write(info["data_addr"], data); ev.append("data")
             for k, s in sites.items():

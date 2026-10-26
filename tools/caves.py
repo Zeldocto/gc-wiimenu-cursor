@@ -5,7 +5,7 @@ Every address that anything can reach is collected: branch targets (b/bl/bc), ra
 unreferenced `stwu r1` prologue and ends just before the next reachable address or the
 next prologue. Branches *inside* the range don't count.
 
-  python tools/caves.py [--menu 514]
+  python tools/caves.py [--menu 514] [count]
 """
 import sys
 sys.path.insert(0, __import__("os").path.dirname(__file__))
@@ -49,6 +49,13 @@ def dead_ranges(d):
     for a, w in words:
         if not (LO <= a < HI and w >> 16 == 0x9421) or a in t:
             continue
+        # the compiler can schedule instructions before the stwu (e.g. v513 0x815469B4 is
+        # "cmpwi; stwu"), so the function really starts after the previous blr/b
+        s = a - 4
+        while wmap.get(s, 0x4E800020) != 0x4E800020 and wmap[s] >> 26 != 18:
+            s -= 4
+        if any(p in t for p in range(s + 4, a, 4)):
+            continue
         e = a + 4
         while e < HI and wmap.get(e, 0) >> 16 != 0x9421:
             refs = [r for r in t.get(e, []) if not a <= r < e]
@@ -65,5 +72,7 @@ def dead_ranges(d):
 
 
 if __name__ == "__main__":
-    for s, n in dead_ranges(menu_arg(sys.argv))[:20]:
+    argv = sys.argv[1:]
+    d = menu_arg(argv)
+    for s, n in dead_ranges(d)[:int(argv[0]) if argv else 20]:
         print(f"  {s:08x}-{s+n:08x}  size {n:#6x}")
