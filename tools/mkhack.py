@@ -53,7 +53,9 @@ def make(out=OUT):
     blocks = [block(j.parent) for j in sorted(BUILD.glob("v*/gc_hook.json"))]
     assert blocks, "nothing built: run tools/build.py first"
     assert len({tuple(f) for f, _ in blocks}) == 1, "mixed release/debug builds: rerun tools/build.py"
-    lines = [l for _, b in blocks for l in b + [""]][:-1]   # blank line between blocks
+    # Priiloader's GetLine() treats an empty line as EOF.
+    # Keep regional blocks adjacent so every version is parsed.
+    lines = [l for _, b in blocks for l in b]
     text = "\n".join(lines) + "\n"
     assert max(len(l) for l in lines) < 0x2000, "line too long for Priiloader"
     Path(out).write_text(text, newline="\n")

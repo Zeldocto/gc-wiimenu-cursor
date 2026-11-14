@@ -12,11 +12,11 @@ Tested on a real Wii and in Dolphin (see [Needs testing](#needs-testing) for wha
 
 | | |
 |---|---|
-| System Menu | **4.3U (v513)**, **4.3E (v514)** and **4.3J (v512)** |
+| System Menu | **4.3U (v513)**, **4.3E (v514)**, **4.3J (v512)**, and **4.3K (v518)** |
 | Priiloader | Tested on 0.9.1 and 0.10.0 |
 | Console | Wii (not tested on vWii / Wii U) |
 
-To check your version, open **Wii Settings**: it's shown in the top right corner. It must say **4.3U**, **4.3E** or **4.3J**. The hack file has one block per version and Priiloader only lists the one that matches your Wii, so you'll see a single *GameCube Controller Cursor* entry, and other versions can't enable it by accident.
+To check your version, open **Wii Settings**: it's shown in the top right corner. It must say **4.3U**, **4.3E**, **4.3J**, or **4.3K**. The hack file has one block per version and Priiloader only lists the one that matches your Wii, so you'll see a single *GameCube Controller Cursor* entry, and other versions can't enable it by accident.
 
 ## Controls
 
@@ -109,6 +109,7 @@ The ready-made hack is in `hack/`, so you only need this to change the code or p
    | 4.3U (v513) | `bin/sysmenu_v513.dol` | `10000098.app` | `00000098.app` | `26116613f624061ba99c8d1a299aaa6efa85670d` |
    | 4.3E (v514) | `bin/sysmenu_v514.dol` | `1000009b.app` | `0000009b.app` | `2ebea6ed22473857ed64b12daa71ae2d1ed61708` |
    | 4.3J (v512) | `bin/sysmenu_v512.dol` | `10000095.app` | `00000095.app` | `c94c8e671854d56fa2abd4c4c886e6c62a2c7f0e` |
+   | 4.3K (v518) | `bin/sysmenu_v518.dol` | `1000009e.app` | `0000009e.app` | `98496cc8467f0749d7605fc175b1911827aa1fd0` |
 
    (Priiloader moves the original menu to the `1…` name.)
 3. Build (every supported version, then one .ini with a block for each):

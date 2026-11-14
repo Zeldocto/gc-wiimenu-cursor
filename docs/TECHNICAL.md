@@ -198,7 +198,20 @@ Dolphin can run the hook without Priiloader. `tools/dolmem.py` maps Dolphin's em
 
 Patching while the menu is running doesn't take effect: Dolphin's JIT keeps executing its cached copy, and *JIT → Clear Cache* during the menu froze it in testing. Patch while paused at boot instead. `tools/livepatch.py status` shows the call sites, the counters and the GC state.
 
-On Linux (where `dolmem.py`'s Windows shared memory isn't available), Dolphin's GDB stub works instead: set `GDBPort` under `[General]` in `Dolphin.ini`, start with `-d` (breakpoints only work with debugging enabled) and `-n 0000000100000002`. The menu stops before its first instruction with the DOL already loaded; memory is reachable at physical addresses until the MMU is on, and at virtual addresses after. *Tools → Perform Online System Update* installs a menu into a fresh NAND (USA: v513, Europe: v514, Japan: v512), and adding `IPL.CD`/`IPL.CD2` (bool, 1) to its SYSCONF skips first-time setup. The debug build's TEST halfword lets a script press GC buttons through the debugger.
+On Linux (where `dolmem.py`'s Windows shared memory isn't available), Dolphin's GDB stub works instead. Set `GDBPort = 55000` under `[General]` in `Dolphin.ini`, start Dolphin with `-d` (breakpoints only work with debugging enabled) and `-n 0000000100000002`. The menu stops before its first instruction with the DOL already loaded; memory is reachable at physical addresses until the MMU is on, and at virtual addresses after.
+
+For this repository, `tools/gdbpatch.py` is a Linux-friendly replacement for `mkhack.py apply`. It speaks the GDB remote protocol directly, so it does not need `dolmem.py` or a running `gdb` process:
+
+```sh
+python tools/build.py --menu 518
+python tools/mkhack.py
+python tools/gdbpatch.py --menu 518 --dry-run
+python tools/gdbpatch.py --menu 518
+```
+
+Run it while the System Menu is stopped at its first instruction. The helper selects the matching version block from `build/gc_cursor_hack.ini`, checks every target range against the stock `bin/sysmenu_v518.dol`, translates each virtual address to its physical MEM1 address (`addr & 0x3fffffff`), verifies that RAM contains either the stock bytes or the already-installed patch, and only then writes the missing patches. It reads each write back for verification and does not send a continue command. If it reports an unexpected RAM byte, stop: don't use a force option or resume the menu; check that the correct NAND/menu is loaded and still paused at the initial stop.
+
+After a successful patch, resume the emulated CPU using Dolphin's debugger. The helper closing its GDB connection does not issue a resume request. Keep **Enable Cheats** off. *Tools → Perform Online System Update* installs a menu into a fresh NAND (USA: v513, Europe: v514, Japan: v512, Korea: v518), and adding `IPL.CD`/`IPL.CD2` (bool, 1) to its SYSCONF skips first-time setup. The debug build's TEST halfword lets a script press GC buttons through the debugger.
 
 Pitfalls found along the way:
 - In PowerPC, `addi rD, r0, x` means `li rD, x`, so r0 is never used as a base register. (That includes `addi r0, r0, -1`, which is `li r0, -1`.)
