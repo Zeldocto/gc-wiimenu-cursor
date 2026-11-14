@@ -57,6 +57,15 @@ MENUS = {
               DATA=dict(WMGR=(0x816C807C, 0x813F0F58), PANEVT=(0x816A170C, 0x815478C0)),
               CAVES=dict(code=(0x81358F30, 0x930), data=(0x81359860, 0x120), btns=(0x814DD4A8, 0x100),
                          panes=(0x814DC968, 0x140), code2=(0x8159F3C4, 0x13C))),
+    518: dict(name="4.3K",
+              SDK=dict(WPADProbe=0x815537DC, KPADRead=0x8156073C, PADRead=0x8154F6E8,
+                       PADReset=0x8154F378, memset=0x81330334, GetPaneRect=0x814F7C1C,
+                       SCGetAspect=0x81542D6C, WWWQueue=0x8136CC3C),
+              SITES=dict(probe=(0x81336A1C, 0x4821CDC1), kpad=(0x81336A54, 0x48229CE9),
+                         rect=(0x81368BD8, 0x4818F045), rect2=(0x81378038, 0x4817FBE5)),
+              DATA=dict(WMGR=(0x8166CF94, 0x813F1100), PANEVT=(0x81645D54, 0x814F7738)),
+              CAVES=dict(code=(0x81358E10, 0x930), data=(0x81359740, 0x120), btns=(0x8148D320, 0x100),
+                         panes=(0x8148C7E0, 0x140), code2=(0x8154F23C, 0x13C))),
 }
 
 # tuning
